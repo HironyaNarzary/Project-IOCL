@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <title>All Apprentice Attendance</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #E5EDF1;
+    }
+
+    .container {
+      margin-top: 140px;
+      text-align: center;
+      padding: 10px;
+    }
+
+    h1 {
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #30a5fe;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .table-container {
+      padding: 10px;
+      margin-top: 20px;
+      overflow-y: auto;
+      overflow-x: auto;
+      max-height: calc(100vh - 150px);
+      background-color: #f8f8f8;
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .controls {
+      padding: 20px;
+      background-color: #f4f4f9;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .controls input,
+    .controls button {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .controls input[type="text"] {
+      margin-bottom: 5px;
+    }
+
+    .controls button {
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .controls button:hover {
+      background-color: #45a049;
+    }
+
+    .controls button:active {
+      background-color: #3e8e41;
+    }
+
+    .summary {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="Home.HTML">
+      <img src="images/logo.gif" alt="IndianOil Logo" />
+    </a>
+    <nav>
+      <a href="Home.HTML">Home</a>
+      <a href="Register.html">Register Apprentice</a>
+      <div class="dropdown">
+        <a href="">Apprentices</a>
+        <div class="dropdown-content">
+          <a href="apprentices.html">Show Apprentice</a>
+          <a href="showAllApprentice.html">Show All Apprentices</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <a href="" class="active">Attendance</a>
+        <div class="dropdown-content">
+          <a href="Attendance.html">Attendance</a>
+          <a href="showAllApprenticeAttendance.html">Show All Apprentices Attendance</a>
+        </div>
+      </div>
+      <a href="Login.html">Logout</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Attendance Management</h1>
+    <div class="controls">
+      <input type="text" id="apprenticeNo" placeholder="Apprentice Id" />
+      <label for="date">Date:</label>
+      <input type="date" id="date" />
+      <label for="startDate">Starting Date:</label>
+      <input type="date" id="startDate" />
+      <label for="endDate">Ending Date:</label>
+      <input type="date" id="endDate" />
+      <button type="button" id="fetchAttendanceButton">Fetch Attendance</button>
+      <button type="button" id="downloadExcelButton" style="display: none; margin-top: 10px;">Download as Excel</button>
+    </div>
+  </div>
+
+  <div class="table-container" id="attendanceTableContainer">
+    <table>
+      <thead>
+        <tr>
+          <th>Serial No</th>
+          <th>Department</th>
+          <th>Apprentice Name</th>
+          <th>Apprentice Id</th>
+          <th>Date</th>
+          <th>In Time</th>
+          <th>Out Time</th>
+          <th>Present</th>
+          <th>Absent</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="summary" id="attendanceSummary"></div>
+<script>
+    const attendanceData = [];
+
+    document.getElementById('fetchAttendanceButton').addEventListener('click', () => {
+      const apprenticeNo = document.getElementById('apprenticeNo').value;
+      const date = document.getElementById('date').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+
+      fetch('http://localhost:3000/fetchAttendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apprenticeNo, date, startDate, endDate }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.length) {
+            document.getElementById('attendanceTableContainer').style.display = 'block';
+            document.getElementById('downloadExcelButton').style.display = 'block';
+            const tableBody = document.getElementById('attendanceTableBody');
+            tableBody.innerHTML = '';
+            attendanceData.length = 0;
+
+            let presentCount = 0;
+            let absentCount = 0;
+
+            data.forEach((record, index) => {
+              const date = new Date(record.date);
+              date.setDate(date.getDate() + 1);
+              const newDate = date.toISOString().split('T')[0];
+
+              const isPresent = record.present ? 'Yes' : 'No';
+              const isAbsent = record.absent ? 'Yes' : 'No';
+
+              if (record.present) presentCount++;
+              if (record.absent) absentCount++;
+
+              const row = `<tr>
+                <td>${index + 1}</td>
+                <td>${record.department}</td>
+                <td>${record.apprenticeName}</td>
+                <td>${record.apprenticeNo}</td>
+                <td>${newDate}</td>
+                <td>${record.inTime}</td>
+                <td>${record.outTime}</td>
+                <td>${isPresent}</td>
+                <td>${isAbsent}</td>
+                <td>${record.remarks}</td>
+              </tr>`;
+              tableBody.innerHTML += row;
+
+              attendanceData.push({
+                SerialNo: index + 1,
+                Department: record.department,
+                ApprenticeName: record.apprenticeName,
+                ApprenticeId: record.apprenticeNo,
+                Date: newDate,
+                InTime: record.inTime,
+                OutTime: record.outTime,
+                Present: isPresent,
+                Absent: isAbsent,
+                Remarks: record.remarks,
+              });
+            });
+
+            const total = presentCount + absentCount;
+            const percentage = ((presentCount / total) * 100).toFixed(2);
+
+            document.getElementById('attendanceSummary').innerHTML =
+              `Total Present: ${presentCount}, Total Absent: ${absentCount}, Attendance Percentage: ${percentage}%`;
+
+            attendanceData.push(
+              {},
+              { SerialNo: 'Total', Department: '', ApprenticeName: '', ApprenticeId: '', Date: '', InTime: '', OutTime: '', Present: presentCount, Absent: absentCount, Remarks: `Percentage: ${percentage}%` }
+            );
+          } else {
+            alert('No attendance records found.');
+            document.getElementById('downloadExcelButton').style.display = 'none';
+            document.getElementById('attendanceSummary').innerHTML = '';
+          }
+        })
+        .catch((error) => console.error('Error:', error));
+    });
+
+    document.getElementById('downloadExcelButton').addEventListener('click', () => {
+      if (attendanceData.length === 0) {
+        alert('No data to download. Fetch attendance first.');
+        return;
+      }
+
+      const colWidths = [
+        { wpx: 60 },
+        { wpx: 100 },
+        { wpx: 100 },
+        { wpx: 80 },
+        { wpx: 100 },
+        { wpx: 100 },
+        { wpx: 100 },
+        { wpx: 80 },
+        { wpx: 80 },
+        { wpx: 150 },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(attendanceData);
+      worksheet['!cols'] = colWidths;
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Data');
+      XLSX.writeFile(workbook, 'AttendanceData.xlsx');
+    });
+  </script>
+</body>
+</html>
