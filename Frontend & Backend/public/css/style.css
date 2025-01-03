@@ -1,0 +1,155 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    line-height: 1.6;
+    color: #333;
+    background-color: #E5EDF1;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    color: #003d6b;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+    position: fixed;
+    top: 0px;
+}
+
+header a {
+    text-decoration: none;
+    color: #30a5fe;
+    margin: 0 10px;
+    font-weight: bold;
+    position: relative;
+    overflow: hidden;
+    padding: 5px 10px;
+    transition: color 0.3s ease;
+}
+
+header a.active {
+    border-bottom: 2px solid #003d6b;
+}
+
+header a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background-color: #003d6b;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+
+header a:hover {
+    color: #00509e;
+}
+
+header a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+header img {
+    height: 50px;
+    width: auto;
+}
+
+nav {
+    display: flex;
+    gap: 20px;
+}
+
+/* Section Styling */
+.home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 90px);
+    background-color: #E5EDF1;
+    text-align: center;
+    padding: 20px;
+}
+
+.home-content {
+    max-width: 800px; /* Increased width */
+    padding: 40px; /* Adjusted padding for more space */
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+
+.home-content h1 {
+    font-size: 2.5rem;
+    color: #003d6b;
+    margin-bottom: 15px;
+}
+
+.home-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+}
+
+/* Dropdown container styling */
+.dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: dodgerblue;
+}
+
+/* Add arrow beside "Apprentices" */
+.dropdown::after {
+    content: '▼'; /* Downward arrow */
+    font-size: 12px;
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+}
+
+/* Rotate arrow on hover */
+.dropdown:hover::after {
+    transform: rotate(180deg); /* Point upward */
+}
+
+/* Dropdown menu styling */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    min-width: 150px;
+}
+.dropdown-content a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #30a5fe;
+    font-weight: normal;
+}
+.dropdown-content a:hover {
+    background-color: #f0f0f0;
+    color: darkblue;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
