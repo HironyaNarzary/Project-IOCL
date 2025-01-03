@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apprentice Attendance</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #e5edf1;
+      }
+
+      .container {
+        margin-top: 147px; /* Adjust for the fixed navbar */
+        text-align: center;
+        padding: 10px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #30a5fe;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      .table-container {
+        padding: 10px;
+        margin-top: 20px;
+        overflow-y: auto; /* Vertical scrolling */
+        overflow-x: auto; /* Horizontal scrolling */
+        max-height: calc(
+          100vh - 150px
+        ); /* Full height minus header and margins */
+        background-color: #f8f8f8;
+        display: none; /* Initially hide the table container */
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+
+      th {
+        background-color: #007bff;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <a href="Home.HTML">
+        <img src="images/logo.gif" alt="IndianOil Logo" />
+      </a>
+      <nav>
+        <a href="Home.HTML">Home</a>
+        <a href="Register.html">Register Apprentice</a>
+        <div class="dropdown">
+          <a href="">Apprentices</a>
+          <div class="dropdown-content">
+            <a href="apprentices.html">Show Apprentice</a>
+            <a href="showAllApprentice.html">Show All Apprentices</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <a href="" class="active">Attendance</a>
+          <div class="dropdown-content">
+            <a href="Attendance.html">Attendance</a>
+            <a href="showAllApprenticeAttendance.html"
+              >Show All Apprentices Attendance</a
+            >
+          </div>
+        </div>
+        <a href="Login.html">Logout</a>
+      </nav>
+    </header>
+
+    <div class="container">
+      <h1>Find All Apprentices Attendance</h1>
+      <button id="fetchApprenticesBtn">Fetch Attendance</button>
+      <button id="exportToExcelBtn" style="display: none">
+        Export to Excel
+      </button>
+    </div>
+
+    <div class="table-container" id="attendanceTableContainer">
+      <table id="table">
+        <thead>
+          <tr>
+            <th>Serial No</th>
+            <th>Apprentice Name</th>
+            <th>Apprentice Id</th>
+            <th>Department</th>
+            <!-- Added Department Column -->
+            <th>Total Present</th>
+            <th>Total Absent</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTableBody">
+          <!-- Rows will be populated here dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+ <!-- Include the XLSX library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+  const attendanceData = []; // Store aggregated data for export
+
+  document.getElementById("fetchApprenticesBtn").addEventListener("click", () => {
+    fetch("/fetchAllAttendance")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch attendance records.");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("API Response:", data); // Debug the entire response
+
+        const tableBody = document.getElementById("attendanceTableBody");
+        tableBody.innerHTML = ""; // Clear previous rows
+
+        const apprenticeMap = {};
+
+        data.forEach((row) => {
+          console.log("Row data:", row); // Debugging each row
+
+          const apprenticeId = row.apprenticeId || "Unknown";
+          const apprenticeName = row.apprenticeName || "Unknown"; // Default to "Unknown" if name is missing
+          const department = row.department || "Unknown";
+
+          if (!row.apprenticeName) {
+            console.warn(
+              "Missing apprentice name for apprenticeId:",
+              row.apprenticeId
+            );
+          }
+
+          const apprenticeKey = `${apprenticeId}-${apprenticeName}`;
+          if (!apprenticeMap[apprenticeKey]) {
+            apprenticeMap[apprenticeKey] = {
+              ApprenticeID: apprenticeId,
+              ApprenticeName: apprenticeName,
+              Department: department,
+              TotalPresent: 0,
+              TotalAbsent: 0,
+              TotalDays: 0,
+            };
+          }
+
+          apprenticeMap[apprenticeKey].TotalPresent += row.present || 0;
+          apprenticeMap[apprenticeKey].TotalAbsent += row.absent || 0;
+          apprenticeMap[apprenticeKey].TotalDays +=
+            (row.present || 0) + (row.absent || 0);
+        });
+
+        let index = 1;
+        attendanceData.length = 0; // Clear the attendance data before adding new data
+
+        for (const [key, apprentice] of Object.entries(apprenticeMap)) {
+          const attendancePercentage =
+            apprentice.TotalDays > 0
+              ? (
+                  (apprentice.TotalPresent / apprentice.TotalDays) *
+                  100
+                ).toFixed(2)
+              : 0;
+
+          const newRow = `
+            <tr>
+              <td>${index++}</td>
+              <td>${apprentice.ApprenticeName}</td>
+              <td>${apprentice.ApprenticeID}</td>
+              <td>${apprentice.Department}</td>
+              <td>${apprentice.TotalPresent}</td>
+              <td>${apprentice.TotalAbsent}</td>
+              <td>${attendancePercentage}%</td>
+            </tr>
+          `;
+          tableBody.innerHTML += newRow;
+
+          attendanceData.push({
+            SerialNo: index - 1,
+            "Apprentice ID": apprentice.ApprenticeID,
+            Name: apprentice.ApprenticeName,
+            Department: apprentice.Department,
+            "Total Present": apprentice.TotalPresent,
+            "Total Absent": apprentice.TotalAbsent,
+            Percentage: `${attendancePercentage}%`,
+          });
+        }
+
+        document.getElementById("attendanceTableContainer").style.display =
+          "block";
+        document.getElementById("exportToExcelBtn").style.display =
+          "inline-block";
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Error fetching attendance records.");
+      });
+  });
+
+  // Export attendance data to Excel
+  document.getElementById("exportToExcelBtn").addEventListener("click", () => {
+    if (attendanceData.length === 0) {
+      alert("No data available to export.");
+      return;
+    }
+
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Convert attendance data to a worksheet
+    const worksheet = XLSX.utils.json_to_sheet(attendanceData);
+
+    // Append the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Data");
+
+    // Export the workbook as an Excel file
+    XLSX.writeFile(workbook, "AttendanceData.xlsx");
+  });
+</script>
+
+  </body>
+</html>

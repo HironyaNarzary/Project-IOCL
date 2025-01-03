@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="google" content="notranslate">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Typing Animation Styles */
+        .typing-animation-container {
+            text-align: center; /* Center text in the container */
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            border-right: 2px solid #000; /* Cursor effect */
+            animation: blink 0.7s step-end infinite;
+        }
+
+        @keyframes blink {
+            from, to { border-color: transparent; }
+            50% { border-color: black; }
+        }
+
+        /* Button Styling */
+        .register-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #30a5fe;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .register-button:hover {
+            background-color: #00509e;
+        }
+    </style>
+    <title>Home</title>
+</head>
+<body>
+    <header>
+        <a href="Home.HTML">
+            <img src="images/logo.gif" alt="IndianOil Logo" />
+        </a>
+        <nav>
+            <a href="Home.HTML" class="active">Home</a>
+            <a href="Register.html">Register Apprentice</a>
+            <div class="dropdown">
+                <a href="#">Apprentices</a>
+                <div class="dropdown-content">
+                    <a href="apprentices.html">Show Apprentice</a>
+                    <a href="showAllApprentice.html">Show All Apprentices</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#">Attendance</a>
+                <div class="dropdown-content">
+                    <a href="Attendance.html">Attendance</a>
+                    <a href="showAllApprenticeAttendance.html">Show All Apprentices Attendance</a>
+                </div>
+            </div>
+            <a href="Login.html">Logout</a>
+        </nav>
+    </header>
+    <section class="home">
+        <div class="home-content">
+            <div class="typing-animation-container">
+                <div id="line1">
+                    <span id="typing-line1"></span><span class="typing-cursor"></span>
+                </div>
+                <div id="line2">
+                    <span id="typing-line2"></span><span class="typing-cursor"></span>
+                </div>
+            </div>
+            <a href="Register.html" class="register-button">Register Now</a>
+        </div>
+    </section>
+
+    <script>
+        // Typing effect logic
+        const textLines = ["Welcome To Apprentice", "Portal"]; // Lines to type
+        const typingSpeed = 100; // Speed of typing in milliseconds
+        const delayBetweenLines = 500; // Reduced delay to make transition smoother
+        const line1Container = document.getElementById("typing-line1");
+        const line2Container = document.getElementById("typing-line2");
+
+        let lineIndex = 0; // Track current line
+        let charIndex = 0; // Track character index
+
+        function typeLine() {
+            if (lineIndex === 0 && charIndex < textLines[lineIndex].length) {
+                // Typing for line 1
+                line1Container.textContent += textLines[lineIndex].charAt(charIndex);
+                charIndex++;
+                setTimeout(typeLine, typingSpeed);
+            } else if (lineIndex === 1 && charIndex < textLines[lineIndex].length) {
+                // Typing for line 2
+                line2Container.textContent += textLines[lineIndex].charAt(charIndex);
+                charIndex++;
+                setTimeout(typeLine, typingSpeed);
+            } else {
+                // Move to the next line or restart animation
+                if (lineIndex < textLines.length - 1) {
+                    lineIndex++;
+                    charIndex = 0;
+                    setTimeout(typeLine, delayBetweenLines);
+                } else {
+                    // Restart typing animation without extra delay
+                    setTimeout(() => {
+                        line1Container.textContent = "";
+                        line2Container.textContent = "";
+                        lineIndex = 0;
+                        charIndex = 0;
+                        typeLine();
+                    }, 200); // Reduced time for restarting
+                }
+            }
+        }
+
+        // Start the typing effect
+        typeLine();
+    </script>
+</body>
+</html>

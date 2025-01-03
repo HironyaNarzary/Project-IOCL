@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Total Apprentice</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script> <!-- Add xlsx library -->
+    <style>
+ body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #E5EDF1;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 100vh; /* Full viewport height */
+    flex-direction: column; /* Stack items vertically */
+    padding: 0 20px; /* Add padding on sides to prevent content from touching screen edges */
+}
+
+.container {
+    width: 100%; /* Ensure the container takes up the full width */
+    max-width: 500px; /* Reduce the max-width of the container */
+    background: #ffffff;
+    padding: 1.5%; /* Reduce the padding inside the container */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: 0; /* Remove margin-top, flexbox already centers it vertically */
+}
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #30a5fe;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* New separate container for displaying data */
+        .result-container {
+            max-width: 90%;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none; /* Initially hidden */
+            text-align: center;
+            height: 400px; /* Fixed height */
+            overflow-y: auto; /* Enables vertical scrolling */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background-color: #f4f4f4;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #fff;
+            color: #333;
+        }
+
+        #exportBtn {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #exportBtn:hover {
+            background-color: #218838;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            body {
+                padding-top: 10px; /* Adjust padding on small screens */
+            }
+
+            .container {
+                width: 90%;
+                margin-top: 30px; /* Push container further down on smaller screens */
+            }
+
+            .result-container {
+                width: 100%;
+                margin-top: 20px; /* Additional spacing for smaller screens */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="Home.HTML">
+            <img src="images/logo.gif" alt="IndianOil Logo" />
+        </a>
+        <nav>
+            <a href="Home.HTML">Home</a>
+            <a href="Register.html">Register Apprentice</a>
+            <div class="dropdown">
+                <a href="" class="active">Apprentices</a>
+                <div class="dropdown-content">
+                    <a href="apprentices.html">Show Apprentice</a>
+                    <a href="showAllApprentice.html">Show All Apprentices</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#">Attendance</a>
+                <div class="dropdown-content">
+                    <a href="Attendance.html">Attendance</a>
+                    <a href="showAllApprenticeAttendance.html">Show All Apprentices Attendance</a>
+                </div>
+            </div>
+            <a href="Login.html">Logout</a>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h1>Find All Apprentices</h1>
+        <button id="fetchApprenticesBtn">Fetch Apprentices</button>
+    </div>
+
+    <!-- New container to display fetched data -->
+    <div class="result-container" id="resultContainer">
+        <div id="dataContainer"></div>
+        <button id="exportBtn" style="display: none;">Export to Excel</button>
+    </div>
+
+    <script>
+        document.getElementById('fetchApprenticesBtn').addEventListener('click', () => {
+            fetch('http://localhost:3000/getAllApprentices')
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch apprentices');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    const container = document.getElementById('dataContainer');
+                    container.innerHTML = generateTable(data);
+                    document.getElementById('resultContainer').style.display = 'block'; // Show the result container
+                    document.getElementById('exportBtn').style.display = 'block'; // Show Export button
+                    window.apprenticesData = data; // Store data globally for export
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    document.getElementById('dataContainer').innerHTML = '<p>Error fetching data</p>';
+                });
+        });
+
+        function generateTable(data) {
+            if (data.length === 0) {
+                return '<p>No apprentices found</p>';
+            }
+            let tableHTML = `<table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Apprentice ID</th>
+                        <th>Gender</th>
+                        <th>DOB</th>
+                        <th>Email</th>
+                        <th>Phone Number</th>
+                        <th>State</th>
+                        <th>Nationality</th>
+                        <th>Pin Code</th>
+                        <th>Address</th>
+                    </tr>
+                </thead>
+                <tbody>`; 
+            data.forEach((apprentice) => {
+                tableHTML += `  
+                    <tr>
+                        <td>${apprentice.id}</td>
+                        <td>${apprentice.name}</td>
+                        <td>${apprentice.apprenticeId}</td>
+                        <td>${apprentice.gender}</td>
+                        <td>${apprentice.dob}</td>
+                        <td>${apprentice.email}</td>
+                        <td>${apprentice.phoneNumber}</td>
+                        <td>${apprentice.state}</td>
+                        <td>${apprentice.nationality}</td>
+                        <td>${apprentice.pinCode}</td>
+                        <td>${apprentice.address}</td>
+                    </tr>`;
+            });
+            tableHTML += `</tbody></table>`;
+            return tableHTML;
+        }
+
+        // Export to Excel functionality
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(window.apprenticesData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Apprentices');
+            XLSX.writeFile(wb, 'ApprenticesData.xlsx');
+        });
+    </script>
+</body>
+
+</html>
